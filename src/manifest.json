@@ -1,0 +1,15 @@
+{
+  "name": "Study Reminder",
+  "short_name": "Study Reminder",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#061a2b",
+  "theme_color": "#061a2b",
+  "icons":[
+   {
+    "src": "/icons/icon340.jpeg",
+    "sizes": "340x340",
+    "type": "image/jpeg"
+   }
+  ] 
+}

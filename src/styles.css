@@ -1,0 +1,638 @@
+/* =========================
+   Study Reminder — Premium UI
+   (UI only / no behavior changes)
+   ========================= */
+
+:root{
+  --bg0:#061a2b;
+  --bg1:#0a2e4a;
+  --bg2:#0a4d73;
+
+  --card: rgba(255,255,255,.14); 
+  --card2: rgba(255,255,255,.18);
+  --stroke: rgba(255,255,255,.16);
+  --stroke2: rgba(255,255,255,.22);
+
+  --text: rgba(255,255,255,.94);
+  --muted: rgba(255,255,255,.78);
+
+  --accent: #66d9ff;
+  --accent2:#2ea7ff;
+
+  --pink: #ffd6e7;         /* “学習記録あり”の色は残す */
+  --pinkStroke: #ffb3d1;
+
+  --danger: #ff4d6d;
+  --shadow: 0 18px 60px rgba(0,0,0,.35);
+  --shadow2: 0 10px 28px rgba(0,0,0,.28);
+
+  --radius: 18px;
+  --radius2: 22px;
+}
+
+*{ box-sizing:border-box; }
+html{
+  background: #061a2b;          /* ← 背景の最暗色で固定 */
+  overscroll-behavior-y: none;  /* ← 上下の白いバウンスを抑える */
+}
+
+body{
+  min-height: 100svh; /* iOSの表示領域に強い */
+}
+
+body{
+  margin:0;
+
+  /* ===== Font stack (SF Pro風 + 日本語可読性) ===== */
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Text",
+    "SF Pro Display",
+    "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN",
+    "Noto Sans JP",
+    "Yu Gothic",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+
+  /* ===== Readability ===== */
+  line-height: 1.65;
+  letter-spacing: 0.02em;               /* 漢字の潰れ防止 */
+  font-weight: 500;                     /* 太すぎ防止 */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+
+  /* ===== Color & Background ===== */
+  color: var(--text);
+  background:
+    radial-gradient(1200px 600px at 10% 0%, rgba(102,217,255,.18), transparent 60%),
+    radial-gradient(900px 600px at 95% 15%, rgba(46,167,255,.16), transparent 55%),
+    linear-gradient(180deg, var(--bg0), var(--bg1) 55%, var(--bg2));
+
+  overflow-x: hidden;
+}
+
+/* 本文系は行間を維持 */
+.pre,
+.textarea,
+.box{
+  line-height: 1.65;
+}
+
+/* ===== Background layers ===== */
+.bg{
+  position:fixed;
+  inset:0;
+  z-index:-3;
+  overflow:hidden;
+}
+.bg-video{
+  position:absolute;
+  inset:-2%;
+  width:104%;
+  height:104%;
+  object-fit:cover;
+  filter: blur(6px) saturate(1.08) brightness(.85);
+  transform: scale(1.02);
+  opacity:.60;
+}
+.bg-overlay{
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(900px 420px at 15% 10%, rgba(102,217,255,.22), transparent 60%),
+    radial-gradient(900px 520px at 85% 25%, rgba(46,167,255,.18), transparent 60%),
+    linear-gradient(180deg, rgba(5,18,30,.78), rgba(5,18,30,.62) 55%, rgba(5,18,30,.72));
+  z-index:1;
+}
+.bg-noise{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  opacity:.07;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+  pointer-events:none;
+}
+
+.app-shell{
+  min-height:100%;
+}
+
+/* ===== Layout ===== */
+.container{
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 14px 14px 28px;
+}
+
+/* ===== Top bar ===== */
+.topbar{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 14px 14px 10px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: rgba(7, 18, 30, .45);
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.app-title{
+  margin: 0 0 10px;
+
+  /* ===== SF Pro Display 風 ===== */
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "SF Pro Text",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+
+  font-size: 18px;
+  font-weight: 650;          /* ← 太すぎない */
+  letter-spacing: 0.08em;    /* ← SF Pro感＋潰れ防止 */
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  color: rgba(255,255,255,.96);
+}
+.app-title::before{
+  content:"";
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+
+  background: radial-gradient(
+    circle at 30% 30%,
+    #d6f6ff,
+    #2ea7ff
+  );
+
+  box-shadow:
+    0 0 14px rgba(102,217,255,.45),
+    0 0 2px rgba(255,255,255,.6);
+}
+
+.tabs{
+  display:flex;
+  gap:10px;
+}
+.tab{
+  text-decoration:none;
+  color: var(--muted);
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform .12s ease, background .12s ease, border-color .12s ease, color .12s ease;
+  font-weight: 650;
+  font-size: 13px;
+}
+.tab:active{ transform: scale(.98); }
+.tab.active{
+  color: rgba(6, 22, 36, .92);
+  border-color: rgba(102,217,255,.55);
+  background: linear-gradient(135deg, rgba(102,217,255,.92), rgba(46,167,255,.88));
+  box-shadow: 0 10px 26px rgba(46,167,255,.18);
+}
+
+/* ===== Cards ===== */
+.card{
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: var(--radius2);
+  padding: 14px;
+  margin: 12px 0;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.18),
+      rgba(255,255,255,.10)
+    );
+
+  box-shadow:
+    0 20px 50px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.12);
+
+  backdrop-filter: blur(14px);
+}
+.card h2, .card h3{
+  margin: 0 0 10px;
+  letter-spacing: .2px;
+  text-shadow: 0 1px 2px rgba(0,0,0,.35);
+}
+.card h2{ font-size: 16px; font-weight: 650; letter-spacing: 0.04em; }
+.card h3{ font-size: 14px; font-weight: 600; letter-spacing: 0.03em;}
+
+.row{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.field{ margin: 10px 0; }
+.label{
+  font-size: 11px;
+  color: var(--muted);
+  display:block;
+  margin-bottom: 6px;
+  letter-spacing: .2px;
+}
+
+/* ===== Inputs ===== */
+.input, .textarea, .select{
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(3, 12, 20, .35);
+  color: var(--text);
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  transition: border-color .12s ease, transform .12s ease, background .12s ease;
+}
+.input::placeholder, .textarea::placeholder{
+  color: rgba(255,255,255,.55);
+}
+.input:focus, .textarea:focus, .select:focus{
+  border-color: rgba(102,217,255,.55);
+  background: rgba(3, 12, 20, .45);
+}
+.textarea{ height: 110px; resize: vertical; }
+.select{ appearance:none; -webkit-appearance:none; background-image:
+  linear-gradient(45deg, transparent 50%, rgba(255,255,255,.75) 50%),
+  linear-gradient(135deg, rgba(255,255,255,.75) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 34px;
+}
+
+/* ===== Buttons ===== */
+button{
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: .2px;
+  transition: transform .10s ease, border-color .12s ease, background .12s ease, box-shadow .12s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+button:hover{
+  border-color: rgba(102,217,255,.35);
+  box-shadow: 0 10px 22px rgba(0,0,0,.22);
+}
+button:active{ transform: scale(.98); }
+
+.secondary{
+  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.14);
+}
+
+.danger{
+  background: rgba(255,77,109,.16);
+  border-color: rgba(255,77,109,.56);
+  color: rgba(255,230,235,.98);
+}
+.danger:hover{ 
+    border-color: rgba(255,77,109,.70); 
+    background: rgba(255,77,109,.22);
+}
+
+/* ===== Text helpers ===== */
+.msg{ font-size: 12px; color: rgba(255,255,255,.85); }
+.muted{ color: var(--muted); }
+.box{
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 16px;
+  background: rgba(3, 12, 20, .30);
+}
+.pre{ margin:0; white-space: pre-wrap; line-height: 1.5; }
+.detail-title{ font-weight: 820; margin-bottom: 6px; }
+.detail-meta{ font-size: 12px; margin-bottom: 8px; }
+
+/* ===== Lists ===== */
+.list{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:grid;
+  gap: 10px;
+}
+.list-btn{
+  width: 100%;
+  text-align: left;
+  padding: 12px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.01);
+  border-color: rgba(255,255,255,.12);
+  font-size: 14px;
+  font-weight: 650;
+}
+.list-btn:hover{
+  border-color: rgba(102,217,255,.28);
+}
+.list-row{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items:center;
+}
+
+/* ===== Details / Summary (foldable panels) ===== */
+.summary{
+  font-size: 14px;
+  color: rgba(255,255,255,.88);
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  cursor:pointer;
+  user-select:none;
+  list-style:none;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+summary::-webkit-details-marker{ display:none; }
+details.card{
+  padding: 0;
+}
+details.card > summary{
+  padding: 10px;
+}
+
+/* details 内の本文エリアは「固定カード」と同じ余白にする */
+details.card > *:not(summary){
+  padding: 10px 10px;              /* 子にpaddingを入れない（固定cardと揃える） */
+}
+
+details.card[open] > summary{
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+
+/* details の中身を包む“疑似カード本文”として、summary以外の直下要素をまとめて調整 */
+details.card[open]{
+  padding: 10px;           /* 固定 .card と同じ */
+}
+details.card[open] > summary{
+  margin: -14px -14px 12px; /* summaryはカード上部として見せる */
+  padding: 14px;            /* 既存と同じ */
+}
+/* ===== Calendar ===== */
+.calendar{
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+.cal-head{
+  font-size: 12px;
+  color: var(--muted);
+  text-align:center;
+}
+.cal-day{
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  border-radius: 16px;
+  padding: 12px 0;
+  text-align:center;
+  cursor:pointer;
+  transition: transform .10s ease, border-color .12s ease, background .12s ease;
+}
+.cal-day:active{ transform: scale(.98); }
+.cal-day.is-out{ opacity:.35; }
+
+/* 記録あり：ピンクで塗る（指定どおり） */
+.cal-day.has-record{
+  background: rgba(255,214,231,.88);
+  border-color: rgba(255,179,209,.85);
+  color: rgba(6, 22, 36, .92);
+}
+.cal-day.is-selected{
+  outline: 2px solid rgba(102,217,255,.70);
+  outline-offset: 2px;
+}
+.cal-day .n{ font-weight: 820; }
+
+/* ===== Mobile refinements ===== */
+@media (max-width: 420px){
+  .container{ padding: 12px 12px 24px; }
+  .tabs{ gap:8px; }
+  .tab{ padding: 9px 10px; font-size: 13px; }
+  .card{ padding: 12px; border-radius: 18px; }
+  details.card > summary{ padding: 12px; }
+  details.card > *:not(summary){ padding: 12px; }
+}
+
+/* ===== Splash Screen ===== */
+#splash{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    radial-gradient(600px 300px at 50% 30%, rgba(102,217,255,.25), transparent 60%),
+    linear-gradient(180deg, #061a2b, #0a2e4a);
+
+  transition: opacity .4s ease;
+}
+
+#splash.hide{
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-title{
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+
+  font-size: 28px;
+  font-weight: 700;          /* ← 800は重すぎ */
+  letter-spacing: 0.14em;    /* ← Appleっぽい余白 */
+
+  color: rgba(255,255,255,.97);
+
+  text-shadow:
+    0 8px 32px rgba(46,167,255,.40),
+    0 2px 10px rgba(0,0,0,.35);
+
+  animation: splashFade 1s ease forwards;
+}
+
+@keyframes splashFade{
+  from{
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to{
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* インポートをボタンと同じ見た目にする */
+.file-btn{
+  position: relative;
+  display: inline-block;
+}
+
+/* 透明なinputをボタンの上に重ねる */
+.file-btn input[type="file"]{
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* 空状態（記録なし）を統一：固定表示と同じトーンにする */
+.empty-state{
+  padding: 10px 10px;
+  border-radius: 18px;
+  background: rgba(3, 12, 20, .34);
+  border: 1px solid rgba(255,255,255,.14);
+
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255,255,255,.82);
+}
+
+/* 右上の ? ボタン */
+.icon-btn{
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  padding: 0;
+}
+
+/* header内で右上に置く（必要なら） */
+.topbar{
+  position: sticky;
+}
+#helpBtn{
+  position: absolute;
+  right: 14px;
+  top: 12px;
+}
+
+/* モーダル */
+.modal{
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+}
+.modal-backdrop{
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+}
+.modal-panel{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(920px, calc(100vw - 24px));
+  height: min(80vh, 720px);
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(10, 25, 40, .78);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 25px 70px rgba(0,0,0,.45);
+  overflow: hidden;
+}
+
+.modal-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+.modal-title{
+  font-weight: 650;
+  letter-spacing: 0.03em;
+}
+
+.modal-body{
+  height: calc(100% - 52px);
+  background: rgba(255,255,255,.04);
+}
+
+/* Help image */
+.help-image-wrap{
+  height: 100%;
+  overflow: auto;          /* 縦長でもスクロールできる */
+  padding: 12px;
+}
+
+.help-image{
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 10px 34px rgba(0,0,0,.35);
+}
+
+/* ===== Review: inline memo detail (tap under the title) ===== */
+.inline-detail{
+  margin-top: 10px;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+}
+
+.inline-detail .detail-title{
+  font-weight: 650;
+  letter-spacing: .02em;
+  margin-bottom: 4px;
+}
+
+.inline-detail .detail-meta{
+  font-size: 12px;
+  opacity: .75;
+  margin-bottom: 10px;
+}
+
+.inline-detail .pre{
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* 小さくフェードイン */
+.inline-detail{
+  animation: inlineFade .18s ease-out both;
+}
+@keyframes inlineFade{
+  from{ opacity: 0; transform: translateY(-2px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
