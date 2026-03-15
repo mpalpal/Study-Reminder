@@ -106,11 +106,3 @@ Safari で URL を開き、共有 → 「ホーム画面に追加」/「Dockに�
 git clone https://github.com/mpalpal/study-reminder.git
 cd study-reminder
 python3 -m http.server 5500
-
-  
-
-
-
-
-
-
