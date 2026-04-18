@@ -9,7 +9,7 @@
 
 Study Reminder is a **personal learning management web application (PWA)** designed to help users record daily learning activities and review them at optimal timings.
 
-The concept is inspired by **Ebbinghaus’ Forgetting Curve**, aiming to support efficient learning by encouraging review at appropriate intervals.
+The concept is inspired by **Ebbinghaus Forgetting Curve**, aiming to support efficient learning by encouraging review at appropriate intervals.
 
 This application is designed and developed for **daily use on iPhone / iPad / MacBook, with a focus on simplicity, usability, and offline availability.
 
