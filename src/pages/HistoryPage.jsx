@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { getItems, hasItems } from "../lib/logs.js";
 import { useEntryEditor } from "../hooks/useEntryEditor.js";
+import { useI18n } from "../i18n/I18nProvider.jsx";
 import Calendar from "../components/Calendar.jsx";
 import EntryForm from "../components/EntryForm.jsx";
 import EntryList from "../components/EntryList.jsx";
-import BackupPanel from "../components/BackupPanel.jsx";
 
 export default function HistoryPage({ hidden, today, store }) {
+  const { t } = useI18n();
   const [selectedKey, setSelectedKey] = useState(today);
   const editor = useEntryEditor(selectedKey, store);
 
@@ -20,7 +21,7 @@ export default function HistoryPage({ hidden, today, store }) {
       />
 
       <div className="card">
-        <h3>{selectedKey} の記録</h3>
+        <h3>{t("history.recordsOf", { date: selectedKey })}</h3>
         <EntryList
           items={getItems(store.logs, selectedKey)}
           onSelect={editor.startEdit}
@@ -30,13 +31,11 @@ export default function HistoryPage({ hidden, today, store }) {
       </div>
 
       <EntryForm
-        heading="編集 / 追加"
-        subtitle={editor.isEditing ? `編集中：${selectedKey}` : `追加先：${selectedKey}`}
-        addLabel="追加"
+        heading={t("history.formHeading")}
+        subtitle={t(editor.isEditing ? "history.editingOn" : "history.addingTo", { date: selectedKey })}
+        addLabel={t("form.add")}
         editor={editor}
       />
-
-      <BackupPanel store={store} />
     </section>
   );
 }

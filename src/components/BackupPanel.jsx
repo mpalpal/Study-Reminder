@@ -1,15 +1,17 @@
 import { useRef } from "react";
 import { downloadBackup, readBackupFile } from "../lib/backup.js";
 import { useFlashMessage } from "../hooks/useFlashMessage.js";
+import { useI18n } from "../i18n/I18nProvider.jsx";
 
-/** JSON バックアップのエクスポート・インポートと全削除 */
+/** JSON バックアップのエクスポート・インポートと全削除（設定画面の中） */
 export default function BackupPanel({ store }) {
+  const { t } = useI18n();
   const fileInput = useRef(null);
   const [message, flash] = useFlashMessage(3000);
 
   const handleExport = () => {
     downloadBackup(store.logs);
-    flash("エクスポートしました（ファイルに保存してください）");
+    flash(t("backup.exported"));
   };
 
   const handleImport = async (e) => {
@@ -17,44 +19,42 @@ export default function BackupPanel({ store }) {
     if (!file) return;
 
     try {
-      const ok = window.confirm(
-        "インポートすると、今のデータは上書きされます。続行しますか？\n（不安なら先にエクスポートしてください）",
-      );
-      if (!ok) return;
+      if (!window.confirm(t("backup.confirmImport"))) return;
       store.replaceAll(await readBackupFile(file));
-      flash("インポートしました");
+      flash(t("backup.imported"));
     } catch (err) {
-      flash(`インポート失敗: ${err.message}`);
+      const reason = t(`backupError.${err.code ?? "unknown"}`, { dateKey: err.dateKey });
+      flash(t("backup.importFailed", { reason }));
     } finally {
       e.target.value = ""; // 同じファイルをもう一度選べるようにする
     }
   };
 
-  const handleClear = () => {
-    if (!window.confirm("本当に全データを削除しますか？\n（先にエクスポート推奨）")) return;
+  const handleWipe = () => {
+    if (!window.confirm(t("backup.confirmWipe"))) return;
     store.clearAll();
-    flash("全削除しました");
+    flash(t("backup.wiped"));
   };
 
   return (
-    <div className="card">
-      <h3>バックアップ (JSON)</h3>
-      <p className="muted">iCloud Driveにデータ保存</p>
+    <section className="modal-section">
+      <h3>{t("backup.heading")}</h3>
+      <p className="muted">{t("backup.hint")}</p>
 
       <div className="row backup-actions">
         <button type="button" onClick={handleExport}>
-          エクスポート
+          {t("backup.export")}
         </button>
         <button type="button" onClick={() => fileInput.current.click()}>
-          インポート
+          {t("backup.import")}
         </button>
         <input ref={fileInput} type="file" accept="application/json,.json" hidden onChange={handleImport} />
-        <button type="button" className="danger" onClick={handleClear}>
-          記録削除
+        <button type="button" className="danger" onClick={handleWipe}>
+          {t("backup.wipe")}
         </button>
       </div>
 
       <p className="msg">{message}</p>
-    </div>
+    </section>
   );
 }
