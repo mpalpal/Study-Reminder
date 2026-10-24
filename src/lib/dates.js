@@ -25,12 +25,6 @@ export function msUntilMidnight(now = new Date()) {
   return midnight - now;
 }
 
-/** 復習ページの見出し。例：「昨日（2026-10-23）」「2026-10-04（20日前）」 */
-export function reviewLabel(daysAgo, dateKey) {
-  const names = { 0: "今日", 1: "昨日", 7: "1週間前", 14: "2週間前" };
-  return names[daysAgo] ? `${names[daysAgo]}（${dateKey}）` : `${dateKey}（${daysAgo}日前）`;
-}
-
 /** 年月の表示。例：「2026-10」（month は 0 始まり） */
 export function monthLabel(year, month) {
   return `${year}-${pad2(month + 1)}`;

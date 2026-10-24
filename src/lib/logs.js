@@ -2,9 +2,12 @@
 //
 // {
 //   "YYYY-MM-DD": {
-//     items: [ { id, title, body, createdAt, updatedAt }, ... ]  // 新しい順
+//     items: [ { id, title, body, createdAt, updatedAt, reviews? }, ... ]  // 新しい順
 //   }
 // }
+//
+// reviews（復習チェック・後から追加した項目）: { "1": チェックした時刻, "7": ..., "14": ... }
+//   キーは復習タイミング（何日前に出てきたときか）。項目がない古いデータは「未チェック」として扱う。
 //
 // ここの関数は元のデータを書き換えず、新しいオブジェクトを返す。
 
@@ -28,11 +31,25 @@ export function upsertEntry(logs, dateKey, { id, title, body }, now = Date.now()
   const items = getItems(logs, dateKey);
   const exists = id && items.some((item) => item.id === id);
 
-  const nextItems = exists
-    ? items.map((item) => (item.id === id ? { ...item, title, body, updatedAt: now } : item))
-    : [{ id: crypto.randomUUID(), title, body, createdAt: now, updatedAt: now }, ...items];
+  if (exists) return updateItem(logs, dateKey, id, (item) => ({ ...item, title, body, updatedAt: now }));
 
-  return { ...logs, [dateKey]: { ...logs[dateKey], items: nextItems } };
+  const newItem = { id: crypto.randomUUID(), title, body, createdAt: now, updatedAt: now };
+  return { ...logs, [dateKey]: { ...logs[dateKey], items: [newItem, ...items] } };
+}
+
+/** 記録の復習チェックを付ける / 外す。stage は復習タイミング（1, 7, 14） */
+export function setReviewed(logs, dateKey, id, stage, checked, now = Date.now()) {
+  return updateItem(logs, dateKey, id, ({ reviews = {}, ...item }) => {
+    const { [stage]: _old, ...others } = reviews;
+    const next = checked ? { ...others, [stage]: now } : others;
+    return Object.keys(next).length ? { ...item, reviews: next } : item;
+  });
+}
+
+/** 指定した記録だけを update 関数で置き換える */
+function updateItem(logs, dateKey, id, update) {
+  const items = getItems(logs, dateKey).map((item) => (item.id === id ? update(item) : item));
+  return { ...logs, [dateKey]: { ...logs[dateKey], items } };
 }
 
 /** 記録を削除する。その日の記録が空になったら日付ごと消す。 */

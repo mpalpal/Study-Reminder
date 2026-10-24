@@ -38,7 +38,7 @@ export default function App() {
       </header>
 
       <main className="container">
-        <ReviewPage hidden={page !== "review"} today={today} logs={store.logs} />
+        <ReviewPage hidden={page !== "review"} today={today} store={store} />
         <RecordPage hidden={page !== "record"} today={today} store={store} />
         <HistoryPage hidden={page !== "history"} today={today} store={store} />
       </main>

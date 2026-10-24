@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { loadLogs, saveLogs } from "../lib/storage.js";
-import { removeEntry, upsertEntry } from "../lib/logs.js";
+import { removeEntry, setReviewed, upsertEntry } from "../lib/logs.js";
 
 /**
  * 学習記録データと、その変更操作をまとめたもの。
@@ -18,6 +18,7 @@ export function useStudyLogs() {
     logs,
     saveEntry: (dateKey, entry) => commit(upsertEntry(logs, dateKey, entry)),
     deleteEntry: (dateKey, id) => commit(removeEntry(logs, dateKey, id)),
+    setReviewed: (dateKey, id, stage, checked) => commit(setReviewed(logs, dateKey, id, stage, checked)),
     replaceAll: (data) => commit(data),
     clearAll: () => commit({}),
   };

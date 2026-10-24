@@ -1,33 +1,65 @@
 import { Fragment, useEffect, useRef } from "react";
+import { REVIEW_STAGES, isReviewed, stagesBefore } from "../lib/reviews.js";
+import ReviewBadges from "./ReviewBadges.jsx";
 
-/** 復習用の記録一覧。タイトルをタップすると、その下にメモが開く。 */
-export default function ReviewList({ label, items, openId, onToggle }) {
+/**
+ * 復習用の記録一覧。タイトルをタップすると、その下にメモが開く。
+ * stage（1・7・14）があれば、そのタイミングの復習チェックボタンと、前のタイミングのチェック状況を表示する。
+ * stage がなければ（「過去の学習」）、全タイミングのチェック状況を表示するだけ。
+ */
+export default function ReviewList({ label, items, stage, onCheck, openId, onToggle }) {
+  const badgeStages = stage ? stagesBefore(stage) : REVIEW_STAGES;
+  const doneCount = stage ? items.filter((item) => isReviewed(item, stage)).length : 0;
+
   return (
     <>
-      <h3>{label}</h3>
+      <div className="review-heading">
+        <h3>{label}</h3>
+        {stage && items.length > 0 && (
+          <span className={doneCount === items.length ? "review-progress complete" : "review-progress"}>
+            {doneCount}/{items.length} 復習済み
+          </span>
+        )}
+      </div>
+
       {items.length === 0 ? (
         <div className="muted box">記録なし</div>
       ) : (
         <ul className="list">
-          {items.map((item) => (
-            <Fragment key={item.id}>
-              <li>
-                <button
-                  type="button"
-                  className="list-btn"
-                  aria-expanded={item.id === openId}
-                  onClick={() => onToggle(item.id)}
-                >
-                  {item.title || "(無題)"}
-                </button>
-              </li>
-              {item.id === openId && (
-                <li>
-                  <InlineDetail item={item} label={label} />
+          {items.map((item) => {
+            const reviewed = stage && isReviewed(item, stage);
+            return (
+              <Fragment key={item.id}>
+                <li className={stage ? "list-row" : undefined}>
+                  <button
+                    type="button"
+                    className={reviewed ? "list-btn is-reviewed" : "list-btn"}
+                    aria-expanded={item.id === openId}
+                    onClick={() => onToggle(item.id)}
+                  >
+                    <span className="list-btn-title">{item.title || "(無題)"}</span>
+                    <ReviewBadges item={item} stages={badgeStages} />
+                  </button>
+                  {stage && (
+                    <button
+                      type="button"
+                      className={reviewed ? "check-btn checked" : "check-btn"}
+                      aria-pressed={reviewed}
+                      aria-label={`${item.title || "(無題)"} を復習済みにする`}
+                      onClick={() => onCheck(item.id, !reviewed)}
+                    >
+                      ✓
+                    </button>
+                  )}
                 </li>
-              )}
-            </Fragment>
-          ))}
+                {item.id === openId && (
+                  <li>
+                    <InlineDetail item={item} label={label} />
+                  </li>
+                )}
+              </Fragment>
+            );
+          })}
         </ul>
       )}
     </>
