@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addMonths, calendarDays, msUntilMidnight, reviewLabel, shiftDateKey, toDateKey } from "./dates.js";
+import { addMonths, calendarDays, msUntilMidnight, shiftDateKey, toDateKey } from "./dates.js";
 
 describe("dates", () => {
   it("toDateKey はゼロ埋めした YYYY-MM-DD を返す", () => {
@@ -10,12 +10,6 @@ describe("dates", () => {
     expect(shiftDateKey("2026-03-01", -1)).toBe("2026-02-28");
     expect(shiftDateKey("2026-01-03", -14)).toBe("2025-12-20");
     expect(shiftDateKey("2024-02-28", 1)).toBe("2024-02-29");
-  });
-
-  it("reviewLabel は固定タイミングに名前を付ける", () => {
-    expect(reviewLabel(1, "2026-10-23")).toBe("昨日（2026-10-23）");
-    expect(reviewLabel(14, "2026-10-10")).toBe("2週間前（2026-10-10）");
-    expect(reviewLabel(20, "2026-10-04")).toBe("2026-10-04（20日前）");
   });
 
   it("addMonths は年をまたぐ", () => {

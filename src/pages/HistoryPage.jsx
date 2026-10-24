@@ -21,7 +21,12 @@ export default function HistoryPage({ hidden, today, store }) {
 
       <div className="card">
         <h3>{selectedKey} の記録</h3>
-        <EntryList items={getItems(store.logs, selectedKey)} onSelect={editor.startEdit} onDelete={editor.remove} />
+        <EntryList
+          items={getItems(store.logs, selectedKey)}
+          onSelect={editor.startEdit}
+          onDelete={editor.remove}
+          showReviews
+        />
       </div>
 
       <EntryForm

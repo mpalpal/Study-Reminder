@@ -1,23 +1,25 @@
 import { useState } from "react";
 import { getItems } from "../lib/logs.js";
-import { reviewLabel, shiftDateKey } from "../lib/dates.js";
+import { shiftDateKey } from "../lib/dates.js";
+import { REVIEW_STAGES, reviewLabel } from "../lib/reviews.js";
 import ReviewList from "../components/ReviewList.jsx";
 
-const FIXED_DAYS_AGO = [1, 7, 14]; // 常に表示する復習タイミング
 const PAST_DAYS_MAX = 30; // 「過去の学習」で選べる範囲
 
-export default function ReviewPage({ hidden, today, logs }) {
+export default function ReviewPage({ hidden, today, store }) {
   // 開いているメモは画面全体で1つだけ：{ section, id }
   const [opened, setOpened] = useState(null);
   const [pastDaysAgo, setPastDaysAgo] = useState(0);
 
-  const section = (sectionId, daysAgo) => {
+  // stage を渡すと、そのタイミングの復習チェックができる一覧になる
+  const section = (sectionId, daysAgo, stage) => {
     const dateKey = shiftDateKey(today, -daysAgo);
-    const label = reviewLabel(daysAgo, dateKey);
     return (
       <ReviewList
-        label={label}
-        items={getItems(logs, dateKey)}
+        label={reviewLabel(daysAgo, dateKey)}
+        items={getItems(store.logs, dateKey)}
+        stage={stage}
+        onCheck={(id, checked) => store.setReviewed(dateKey, id, stage, checked)}
         openId={opened?.section === sectionId ? opened.id : null}
         onToggle={(id) =>
           setOpened((cur) => (cur?.section === sectionId && cur.id === id ? null : { section: sectionId, id }))
@@ -33,9 +35,9 @@ export default function ReviewPage({ hidden, today, logs }) {
 
   return (
     <section hidden={hidden}>
-      {FIXED_DAYS_AGO.map((daysAgo) => (
-        <div key={daysAgo} className="card">
-          {section(`fixed-${daysAgo}`, daysAgo)}
+      {REVIEW_STAGES.map(({ days }) => (
+        <div key={days} className="card">
+          {section(`stage-${days}`, days, days)}
         </div>
       ))}
 
@@ -57,7 +59,7 @@ export default function ReviewPage({ hidden, today, logs }) {
               今日
             </button>
           </div>
-          {section("past", pastDaysAgo)}
+          {section("past", pastDaysAgo, null)}
         </div>
       </details>
     </section>
