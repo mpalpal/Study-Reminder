@@ -60,14 +60,28 @@ Safari で URL を開き、共有 → 「ホーム画面に追加」/「Dockに�
 
 ## 技術スタック
 
-- HTML
-- CSS
-- JavaScript
+- React + Vite（JavaScript）
 - localStorage（データ保存）
-- Service Worker（オフライン対応）
+- vite-plugin-pwa（Service Worker の自動生成・オフライン対応）
+- Vitest（単体テスト）
 - Cloudflare Pages（デプロイ）
 
-フレームワークは使用せず、DOM 操作・状態管理を JavaScript で実装しています。
+---
+
+## ディレクトリ構成
+
+```
+index.html              エントリーポイント（スプラッシュ画面のみ静的に記述）
+public/                 そのまま配信する画像（ヘルプ画像・アイコン）
+src/
+  main.jsx              起動処理
+  App.jsx               ヘッダー・タブ・3ページの切り替え
+  styles.css            デザイン
+  pages/                復習 / 記録 / 履歴 の各ページ
+  components/           ページで使う部品（入力フォーム・一覧・カレンダー・バックアップ・ヘルプ）
+  hooks/                状態管理（記録データ・今日の日付・入力フォーム・メッセージ・URL）
+  lib/                  画面に依存しない処理（日付計算・記録データ操作・保存・バックアップ）＋テスト
+```
 
 ---
 
@@ -102,7 +116,23 @@ Safari で URL を開き、共有 → 「ホーム画面に追加」/「Dockに�
 
 ## ローカルでの起動方法
 
+Node.js 22 以上が必要です。
+
 ```bash
 git clone https://github.com/mpalpal/study-reminder.git
 cd study-reminder
-python3 -m http.server 5500
+npm install
+npm run dev      # 開発サーバー（http://localhost:5173）
+npm test         # 単体テスト
+npm run build    # 本番用ビルド（dist/ に出力）
+```
+
+## デプロイ（Cloudflare Pages）
+
+| 設定 | 値 |
+|---|---|
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Root directory | （空欄） |
+
+Node のバージョンは `.node-version` で指定しています。
