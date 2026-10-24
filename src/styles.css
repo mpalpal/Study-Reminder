@@ -558,6 +558,65 @@ details[open] > .summary {
   margin: 8px 0 0;
 }
 
+/* ===== 設定：端末間の同期 ===== */
+.sync-actions {
+  justify-content: flex-start;
+  margin-top: 10px;
+}
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.sync-dot.syncing {
+  animation: pulse 1s ease-in-out infinite alternate;
+}
+.sync-dot.error {
+  background: rgb(var(--danger));
+}
+.sync-error {
+  color: rgba(255, 190, 200, 0.98);
+}
+.sync-key-box {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(102, 217, 255, 0.35);
+  border-radius: 14px;
+  background: var(--field-bg);
+}
+.sync-key {
+  display: block;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  line-height: 1.8; /* 改行はハイフンの位置で入る */
+  user-select: all;
+  -webkit-user-select: all;
+}
+.sync-key-input {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: 0.04em;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* ===== Splash ===== */
 #splash {
   position: fixed;

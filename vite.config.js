@@ -21,6 +21,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{html,js,css,png,jpeg}"],
+        navigateFallbackDenylist: [/^\/api\//], // 同期 API はキャッシュしない
       },
     }),
   ],

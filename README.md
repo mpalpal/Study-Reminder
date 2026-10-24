@@ -51,6 +51,7 @@ Safari で URL を開き、共有 → 「ホーム画面に追加」/「Dockに�
 
 ### 設定（右上の歯車）
 - 表示言語の切り替え（日本語 / English。初期値は端末の言語）
+- 端末間の同期（同期キー方式・端末側で暗号化。アプリを開いたとき・保存したときに自動同期）
 - 学習データを JSON 形式でエクスポート / インポート、全削除
 
 ### その他
@@ -62,7 +63,8 @@ Safari で URL を開き、共有 → 「ホーム画面に追加」/「Dockに�
 ## 技術スタック
 
 - React + Vite（JavaScript）
-- localStorage（データ保存）
+- localStorage（端末内のデータ保存）
+- Cloudflare Pages Functions + D1（端末間同期の API。中身は端末側で AES-GCM 暗号化）
 - vite-plugin-pwa（Service Worker の自動生成・オフライン対応）
 - Vitest（単体テスト）
 - Cloudflare Pages（デプロイ）
@@ -83,6 +85,8 @@ src/
   hooks/                状態管理（記録データ・設定・今日の日付・入力フォーム・メッセージ・URL）
   i18n/                 表示言語（ja.js / en.js の文言辞書と切り替えの仕組み）
   lib/                  画面に依存しない処理（日付計算・記録データ操作・保存・バックアップ）＋テスト
+    sync/               同期（同期キーと暗号化・差分・同期エンジン）
+functions/api/sync.js   同期 API（Cloudflare Pages Functions + D1）
 ```
 
 ---
@@ -111,8 +115,8 @@ src/
 ## 注意事項
 
 - 学習データは端末内（ブラウザ）に保存されます
-- URL を知っている他人が学習内容を見ることはできません (プライバシー保護)
-- 別端末間での自動同期は行われません（手動インポートのみ）
+- 同期を使う場合も、記録は端末で暗号化してから送るため、同期キーを知らない人（サーバー管理者を含む）は内容を読めません
+- 同期キーをなくすと復元できません
 
 ---
 
@@ -127,6 +131,9 @@ npm install
 npm run dev      # 開発サーバー（http://localhost:5173）
 npm test         # 単体テスト
 npm run build    # 本番用ビルド（dist/ に出力）
+
+# 同期 API も含めて動かす場合（ローカルの D1 が自動で作られる）
+npm run build && npx wrangler pages dev dist --d1 DB=local-study-reminder
 ```
 
 ## デプロイ（Cloudflare Pages）
@@ -138,3 +145,6 @@ npm run build    # 本番用ビルド（dist/ に出力）
 | Root directory | （空欄） |
 
 Node のバージョンは `.node-version` で指定しています。
+
+同期を使うには、D1 データベースを作り、Pages プロジェクトの Settings → Bindings で
+変数名 `DB` としてバインドします（Production と Preview の両方）。テーブルは初回アクセス時に自動で作られます。

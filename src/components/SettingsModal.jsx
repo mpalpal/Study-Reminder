@@ -2,8 +2,9 @@ import { useI18n } from "../i18n/I18nProvider.jsx";
 import { LANGUAGES } from "../i18n/translate.js";
 import Modal from "./Modal.jsx";
 import BackupPanel from "./BackupPanel.jsx";
+import SyncPanel from "./SyncPanel.jsx";
 
-/** 設定：表示言語とバックアップ */
+/** 設定：表示言語・端末間の同期・バックアップ */
 export default function SettingsModal({ settings, updateSettings, store, onClose }) {
   const { t } = useI18n();
 
@@ -26,6 +27,8 @@ export default function SettingsModal({ settings, updateSettings, store, onClose
           </select>
         </label>
       </section>
+
+      <SyncPanel sync={store.sync} />
 
       <BackupPanel store={store} />
     </Modal>
