@@ -16,18 +16,27 @@ export function createBackup(logs, now = new Date()) {
   };
 }
 
-/** バックアップファイルの中身から記録データを取り出す。不正ならエラーを投げる。 */
+/** 読み込めないバックアップファイルのエラー。code は文言辞書の "backupError.〇〇" に対応 */
+export class BackupError extends Error {
+  constructor(code, dateKey) {
+    super(code);
+    this.code = code;
+    this.dateKey = dateKey;
+  }
+}
+
+/** バックアップファイルの中身から記録データを取り出す。不正なら BackupError を投げる。 */
 export function parseBackup(text) {
   let payload;
   try {
     payload = JSON.parse(text);
   } catch {
-    throw new Error("JSON形式が不正です");
+    throw new BackupError("invalidJson");
   }
-  if (!payload?.data) throw new Error("data が見つかりません");
+  if (!payload?.data) throw new BackupError("noData");
 
-  const error = validateLogs(payload.data);
-  if (error) throw new Error(error);
+  const problem = validateLogs(payload.data);
+  if (problem) throw new BackupError(problem.code, problem.dateKey);
   return payload.data;
 }
 

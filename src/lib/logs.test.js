@@ -33,15 +33,15 @@ describe("logs", () => {
   it("validateLogs は旧形式のデータを受け入れ、不正な形は拒否する", () => {
     expect(validateLogs(oldLogs)).toBeNull();
     expect(validateLogs({ "2026-10-20": { items: [] } })).toBeNull();
-    expect(validateLogs({ "10/20": { items: [] } })).toMatch("日付キー");
-    expect(validateLogs({ "2026-10-20": {} })).toMatch("items");
-    expect(validateLogs([])).toMatch("データ構造");
+    expect(validateLogs({ "10/20": { items: [] } })).toEqual({ code: "badDateKey", dateKey: "10/20" });
+    expect(validateLogs({ "2026-10-20": {} })).toEqual({ code: "noItems", dateKey: "2026-10-20" });
+    expect(validateLogs([])).toEqual({ code: "badStructure" });
   });
 
   it("旧バージョンのバックアップファイルを読み込める", () => {
     const file = JSON.stringify({ app: "StudyLog", version: 1, storageKey: "studyLogsV2", data: oldLogs });
     expect(parseBackup(file)).toEqual(oldLogs);
-    expect(() => parseBackup("not json")).toThrow("JSON形式が不正です");
-    expect(() => parseBackup("{}")).toThrow("data が見つかりません");
+    expect(() => parseBackup("not json")).toThrow(expect.objectContaining({ code: "invalidJson" }));
+    expect(() => parseBackup("{}")).toThrow(expect.objectContaining({ code: "noData" }));
   });
 });

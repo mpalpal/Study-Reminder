@@ -59,13 +59,16 @@ export function removeEntry(logs, dateKey, id) {
   return nextItems.length ? { ...rest, [dateKey]: { ...logs[dateKey], items: nextItems } } : rest;
 }
 
-/** 読み込んだデータが記録データの形になっているか確認する。問題があればエラーメッセージを返す。 */
+/**
+ * 読み込んだデータが記録データの形になっているか確認する。
+ * 問題があれば { code, dateKey }（code は文言辞書の "backupError.〇〇" に対応）、なければ null。
+ */
 export function validateLogs(data) {
-  if (!data || typeof data !== "object" || Array.isArray(data)) return "データ構造が不正です";
+  if (!data || typeof data !== "object" || Array.isArray(data)) return { code: "badStructure" };
 
   for (const [dateKey, day] of Object.entries(data)) {
-    if (!DATE_KEY_PATTERN.test(dateKey)) return `日付キーが不正です（${dateKey}）`;
-    if (!Array.isArray(day?.items)) return `items 配列が見つかりません（${dateKey}）`;
+    if (!DATE_KEY_PATTERN.test(dateKey)) return { code: "badDateKey", dateKey };
+    if (!Array.isArray(day?.items)) return { code: "noItems", dateKey };
   }
   return null;
 }

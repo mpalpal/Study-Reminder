@@ -1,27 +1,20 @@
-import { useEffect } from "react";
+import { useI18n } from "../i18n/I18nProvider.jsx";
+import Modal from "./Modal.jsx";
 
-/** 使い方（画像）を表示するモーダル。背景タップ・×・Esc キーで閉じる。 */
+/** 使い方の説明（文言は辞書の "help.sections"） */
 export default function HelpModal({ onClose }) {
-  useEffect(() => {
-    const onKeyDown = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onClose]);
+  const { t } = useI18n();
 
   return (
-    <div className="modal">
-      <div className="modal-backdrop" onClick={onClose} />
-      <div className="modal-panel" role="dialog" aria-modal="true" aria-label="使い方">
-        <div className="modal-head">
-          <div className="modal-title">使い方</div>
-          <button type="button" className="icon-btn" aria-label="閉じる" onClick={onClose}>
-            ×
-          </button>
-        </div>
-        <div className="modal-body">
-          <img className="help-image" src="/help.png" alt="Study Reminder 使い方" />
-        </div>
-      </div>
-    </div>
+    <Modal title={t("help.title")} onClose={onClose}>
+      {t("help.sections").map((section) => (
+        <section key={section.title} className="modal-section">
+          <h3>{section.title}</h3>
+          {section.body.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </section>
+      ))}
+    </Modal>
   );
 }

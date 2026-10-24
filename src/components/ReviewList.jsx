@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef } from "react";
 import { REVIEW_STAGES, isReviewed, stagesBefore } from "../lib/reviews.js";
+import { useI18n } from "../i18n/I18nProvider.jsx";
 import ReviewBadges from "./ReviewBadges.jsx";
 
 /**
@@ -8,6 +9,7 @@ import ReviewBadges from "./ReviewBadges.jsx";
  * stage がなければ（「過去の学習」）、全タイミングのチェック状況を表示するだけ。
  */
 export default function ReviewList({ label, items, stage, onCheck, openId, onToggle }) {
+  const { t } = useI18n();
   const badgeStages = stage ? stagesBefore(stage) : REVIEW_STAGES;
   const doneCount = stage ? items.filter((item) => isReviewed(item, stage)).length : 0;
 
@@ -17,16 +19,17 @@ export default function ReviewList({ label, items, stage, onCheck, openId, onTog
         <h3>{label}</h3>
         {stage && items.length > 0 && (
           <span className={doneCount === items.length ? "review-progress complete" : "review-progress"}>
-            {doneCount}/{items.length} 復習済み
+            {t("review.progress", { done: doneCount, total: items.length })}
           </span>
         )}
       </div>
 
       {items.length === 0 ? (
-        <div className="muted box">記録なし</div>
+        <div className="muted box">{t("common.empty")}</div>
       ) : (
         <ul className="list">
           {items.map((item) => {
+            const title = item.title || t("common.untitled");
             const reviewed = stage && isReviewed(item, stage);
             return (
               <Fragment key={item.id}>
@@ -37,7 +40,7 @@ export default function ReviewList({ label, items, stage, onCheck, openId, onTog
                     aria-expanded={item.id === openId}
                     onClick={() => onToggle(item.id)}
                   >
-                    <span className="list-btn-title">{item.title || "(無題)"}</span>
+                    <span className="list-btn-title">{title}</span>
                     <ReviewBadges item={item} stages={badgeStages} />
                   </button>
                   {stage && (
@@ -45,7 +48,7 @@ export default function ReviewList({ label, items, stage, onCheck, openId, onTog
                       type="button"
                       className={reviewed ? "check-btn checked" : "check-btn"}
                       aria-pressed={reviewed}
-                      aria-label={`${item.title || "(無題)"} を復習済みにする`}
+                      aria-label={t("review.markReviewed", { title })}
                       onClick={() => onCheck(item.id, !reviewed)}
                     >
                       ✓
@@ -67,6 +70,7 @@ export default function ReviewList({ label, items, stage, onCheck, openId, onTog
 }
 
 function InlineDetail({ item, label }) {
+  const { t } = useI18n();
   const ref = useRef(null);
 
   // 開いたときに画面外なら、見える位置まで少しスクロールする
@@ -76,7 +80,7 @@ function InlineDetail({ item, label }) {
 
   return (
     <div ref={ref} className="inline-detail">
-      <div className="detail-title">{item.title || "(無題)"}</div>
+      <div className="detail-title">{item.title || t("common.untitled")}</div>
       <div className="detail-meta muted">{label}</div>
       <pre className="pre">{item.body}</pre>
     </div>

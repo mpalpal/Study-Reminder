@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useFlashMessage } from "./useFlashMessage.js";
+import { useI18n } from "../i18n/I18nProvider.jsx";
 
 const EMPTY_DRAFT = { title: "", body: "" };
 
@@ -8,6 +9,7 @@ const EMPTY_DRAFT = { title: "", body: "" };
  * dateKey の日付に対して追加・編集・削除を行う。
  */
 export function useEntryEditor(dateKey, { saveEntry, deleteEntry }) {
+  const { t } = useI18n();
   const [draft, setDraft] = useState(EMPTY_DRAFT);
   const [editingId, setEditingId] = useState(null);
   const [message, flash] = useFlashMessage();
@@ -34,30 +36,30 @@ export function useEntryEditor(dateKey, { saveEntry, deleteEntry }) {
     startEdit(item) {
       setDraft({ title: item.title ?? "", body: item.body ?? "" });
       setEditingId(item.id);
-      flash("編集モード", { persist: true });
+      flash(t("editor.editing"), { persist: true });
     },
 
     cancel() {
       reset();
-      flash("編集をキャンセルしました");
+      flash(t("editor.canceled"));
     },
 
     submit() {
       const title = draft.title.trim();
       const body = draft.body.trim();
-      if (!title) return flash("タイトルは必須です");
-      if (!body) return flash("学習メモは必須です");
+      if (!title) return flash(t("editor.titleRequired"));
+      if (!body) return flash(t("editor.bodyRequired"));
 
       saveEntry(dateKey, { id: editingId, title, body });
-      flash(editingId ? "更新しました" : "保存しました");
+      flash(t(editingId ? "editor.updated" : "editor.saved"));
       reset();
     },
 
     remove(item) {
-      if (!window.confirm("この記録を削除しますか？")) return;
+      if (!window.confirm(t("editor.confirmDelete"))) return;
       deleteEntry(dateKey, item.id);
       if (item.id === editingId) reset();
-      flash("削除しました");
+      flash(t("editor.deleted"));
     },
   };
 }

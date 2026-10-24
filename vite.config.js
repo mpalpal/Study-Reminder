@@ -9,7 +9,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate", // 新しい版をデプロイしたら、次回起動時に自動で切り替わる
       filename: "service-worker.js",
-      includeAssets: ["help.png", "icons/icon340.jpeg"],
+      includeAssets: ["icons/icon340.jpeg"],
       manifest: {
         name: "Study Reminder",
         short_name: "Study Reminder",
