@@ -558,6 +558,76 @@ details[open] > .summary {
   margin: 8px 0 0;
 }
 
+/* ===== 設定：アカウント ===== */
+.segmented {
+  display: inline-flex;
+  gap: 4px;
+  margin: 4px 0 6px;
+  padding: 4px;
+  border: 1px solid var(--stroke);
+  border-radius: 999px;
+  background: var(--field-bg);
+}
+.segment {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+}
+.segment:hover {
+  box-shadow: none;
+}
+.segment.active {
+  background: linear-gradient(135deg, rgba(102, 217, 255, 0.92), rgba(46, 167, 255, 0.88));
+  color: rgba(6, 22, 36, 0.92);
+}
+.hint {
+  margin: 6px 0 0 !important;
+  font-size: 12px !important;
+  color: var(--muted);
+}
+.account-actions {
+  justify-content: flex-start;
+  margin-top: 10px;
+}
+.account-user {
+  font-weight: 650;
+}
+.account-error {
+  color: rgba(255, 190, 200, 0.98);
+}
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.sync-dot.syncing {
+  animation: pulse 1s ease-in-out infinite alternate;
+}
+.sync-dot.error {
+  background: rgb(var(--danger));
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.3;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* ===== Splash ===== */
 #splash {
   position: fixed;
