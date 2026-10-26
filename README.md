@@ -16,7 +16,7 @@ This application is designed and developed for **daily use on iPhone / iPad / Ma
 ---
 
 ## アプリ利用
-**Web (PWA対応): *https://58712e0c.study-reminder.pages.dev***
+**Web (PWA対応): *https://study-reminder.pages.dev***
 
 Safari で URL を開き、共有 → 「ホーム画面に追加」/「Dockに追加」することでアプリとして利用できます。
 
