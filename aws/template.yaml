@@ -1,0 +1,174 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Study Reminder のバックエンド（ログインと端末間同期）。
+  Cognito でユーザー名とパスワードのログイン、Lambda（関数 URL）で同期 API、DynamoDB に記録を保存する。
+  すべて AWS の期限なし無料枠の範囲で動く設定にしている。
+
+Parameters:
+  TableCapacity:
+    Type: Number
+    Default: 25
+    MinValue: 1
+    MaxValue: 25
+    Description: >
+      DynamoDB の読み書き容量。DynamoDB の期限なし無料枠はアカウント全体で読み 25・書き 25 まで。
+      ほかにも DynamoDB のテーブルを使っている場合は、合計が 25 を超えないように下げる。
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Architectures: [arm64]
+    MemorySize: 256
+    Timeout: 20
+
+Resources:
+  # ---------- ログイン（Cognito） ----------
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: study-reminder-users
+      # ユーザー名でログイン（大文字・小文字は区別しない）。メールアドレスや電話番号は使わない
+      UsernameConfiguration:
+        CaseSensitive: false
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false # アプリから誰でも新規登録できる
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: admin_only # メールがないので、パスワードの再設定は管理者が行う
+            Priority: 1
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: false
+          RequireUppercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+      MfaConfiguration: "OFF"
+      LambdaConfig:
+        PreSignUp: !GetAtt AutoConfirmFunction.Arn
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: study-reminder-app
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false # ブラウザから使うので秘密鍵は持たない
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      PreventUserExistenceErrors: ENABLED # 「そのユーザーは存在しない」と分からないようにする
+      EnableTokenRevocation: true # ログアウト時にログイン状態を無効にできる
+      # ログアウトしない限りログインしたまま（リフレッシュトークン 10 年、アクセストークン 1 時間）
+      RefreshTokenValidity: 3650
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      TokenValidityUnits:
+        RefreshToken: days
+        AccessToken: hours
+        IdToken: hours
+
+  # 新規登録したユーザーを自動で「確認済み」にする（メール確認がないため）
+  AutoConfirmFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      MemorySize: 128
+      Timeout: 5
+      InlineCode: |
+        exports.handler = async (event) => {
+          event.response.autoConfirmUser = true;
+          return event;
+        };
+
+  AutoConfirmPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AutoConfirmFunction
+      Action: lambda:InvokeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt UserPool.Arn
+
+  # ---------- データ（DynamoDB） ----------
+  # 1 行 = 記録 1 件。userId（Cognito のユーザー ID）ごとにまとまる。
+  ItemsTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain # スタックを消してもデータは残す
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: study-reminder-items
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: itemId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: itemId
+          KeyType: RANGE
+      BillingMode: PROVISIONED # 無料枠に収めるため、容量を固定する
+      ProvisionedThroughput:
+        ReadCapacityUnits: !Ref TableCapacity
+        WriteCapacityUnits: !Ref TableCapacity
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: false
+
+  # ---------- 同期 API（Lambda 関数 URL） ----------
+  SyncFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/sync/
+      Handler: index.handler
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ItemsTable
+          USER_POOL_ID: !Ref UserPool
+          USER_POOL_CLIENT_ID: !Ref UserPoolClient
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ItemsTable
+
+  SyncFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !Ref SyncFunction
+      AuthType: NONE # 認証は関数の中で Cognito のトークンを確かめて行う
+      Cors:
+        # Cookie を使わず、トークンをヘッダーで送る方式なので、どこから呼んでも安全。
+        # Cloudflare のプレビュー URL（デプロイごとに変わる）からも使えるように * にしている
+        AllowOrigins: ["*"]
+        AllowMethods: [POST]
+        AllowHeaders: [authorization, content-type]
+        MaxAge: 86400
+
+  # 関数 URL を公開するために必要な 2 つの許可
+  SyncFunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref SyncFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+
+  SyncFunctionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref SyncFunction
+      Action: lambda:InvokeFunction
+      Principal: "*"
+      InvokedViaFunctionUrl: true
+
+Outputs:
+  Region:
+    Description: リージョン（アプリの設定に使う）
+    Value: !Ref AWS::Region
+  UserPoolClientId:
+    Description: Cognito のアプリクライアント ID（アプリの設定に使う）
+    Value: !Ref UserPoolClient
+  SyncUrl:
+    Description: 同期 API の URL（アプリの設定に使う）
+    Value: !GetAtt SyncFunctionUrl.FunctionUrl
+  UserPoolId:
+    Description: Cognito のユーザープール ID（管理画面でユーザーを探すとき用）
+    Value: !Ref UserPool

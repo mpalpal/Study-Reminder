@@ -19,7 +19,8 @@ export default function BackupPanel({ store }) {
     if (!file) return;
 
     try {
-      if (!window.confirm(t("backup.confirmImport"))) return;
+      const synced = store.account?.auth.loggedIn;
+      if (!window.confirm(t(synced ? "backup.confirmImportSynced" : "backup.confirmImport"))) return;
       store.replaceAll(await readBackupFile(file));
       flash(t("backup.imported"));
     } catch (err) {
@@ -31,7 +32,8 @@ export default function BackupPanel({ store }) {
   };
 
   const handleWipe = () => {
-    if (!window.confirm(t("backup.confirmWipe"))) return;
+    const synced = store.account?.auth.loggedIn;
+    if (!window.confirm(t(synced ? "backup.confirmWipeSynced" : "backup.confirmWipe"))) return;
     store.clearAll();
     flash(t("backup.wiped"));
   };

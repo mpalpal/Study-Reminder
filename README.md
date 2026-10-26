@@ -50,6 +50,9 @@ Safari で URL を開き、共有 → 「ホーム画面に追加」/「Dockに�
 - 過去日付の学習記録を追加・編集可能（記録し忘れた日の後追い入力に対応）
 
 ### 設定（右上の歯車）
+- アカウント（ユーザー名とパスワード）でログインし、記録をサーバーに保存・端末間で自動同期
+  - ログアウトしない限りログインしたまま。別の端末でログインすれば同じ記録を使える
+  - ログインしなくても、これまでどおり端末の中だけで使える
 - 表示言語の切り替え（日本語 / English。初期値は端末の言語）
 - 学習データを JSON 形式でエクスポート / インポート、全削除
 
@@ -62,7 +65,8 @@ Safari で URL を開き、共有 → 「ホーム画面に追加」/「Dockに�
 ## 技術スタック
 
 - React + Vite（JavaScript）
-- localStorage（データ保存）
+- localStorage（端末内のデータ保存）
+- AWS（ログインと同期）：Amazon Cognito / AWS Lambda（関数 URL）/ Amazon DynamoDB、AWS SAM で構築
 - vite-plugin-pwa（Service Worker の自動生成・オフライン対応）
 - Vitest（単体テスト）
 - Cloudflare Pages（デプロイ）
@@ -83,6 +87,14 @@ src/
   hooks/                状態管理（記録データ・設定・今日の日付・入力フォーム・メッセージ・URL）
   i18n/                 表示言語（ja.js / en.js の文言辞書と切り替えの仕組み）
   lib/                  画面に依存しない処理（日付計算・記録データ操作・保存・バックアップ）＋テスト
+    auth/               ログイン（Cognito の API 呼び出し・ログイン状態の維持）
+    sync/               同期（差分の計算・同期エンジン）
+  config.js             AWS の接続先（構築後の Outputs を書く）
+aws/
+  template.yaml         AWS の構成（Cognito・DynamoDB・Lambda）。AWS SAM でデプロイ
+  functions/sync/       同期 API（Lambda）
+  test/                 AWS 側を手元で再現してテストする仕組み
+  README.md             AWS 側の構築手順
 ```
 
 ---
